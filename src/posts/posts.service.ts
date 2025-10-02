@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PostEntity } from './entities/post.entity';
+import { CreatePostDto } from './dto/create-post.dto'
 
 @Injectable()
 export class PostsService {
@@ -30,6 +31,21 @@ export class PostsService {
     }
   ];
 
-  private nextPostId = 3;
+  private nextPostId = 4;
+
+  create(createPostDto: CreatePostDto): PostEntity {
+    const newPost: PostEntity = { // 새 게시글 객체 생성
+      id: this.nextPostId++,
+      userId: createPostDto.userId,
+      title: createPostDto.title,
+      content: createPostDto.content
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.posts.push(newPost);
+
+    return newPost;
+  }
   
 }
