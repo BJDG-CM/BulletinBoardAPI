@@ -1,6 +1,7 @@
-import { Body, Controller, Post, Get, Param, Query, ParseIntPipe } from '@nestjs/common';  
+import { Body, Controller, Post, Get, Param, Query, ParseIntPipe, Patch, Delete, HttpCode, HttpStatus, } from '@nestjs/common';  
 import { PostsService } from './posts.service'; // posts.service.ts에서 PostService의 설계도 가져옴
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -21,5 +22,19 @@ export class PostsController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.findOneById(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() updatePostDto: UpdatePostDto,
+  ) {
+    return this.postsService.update(id, updatePostDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT) // 성공: 204 No Content
+  remove(@Param('id', ParseIntPipe) id: number) {
+    this.postsService.remove(id);
   }
 }
