@@ -1,92 +1,48 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PostEntity } from './entities/post.entity';
-import { CreatePostDto } from './dto/create-post.dto'
-import { UpdatePostDto } from './dto/update-post.dto'
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PostsRepository } from './repositories/posts.repository';
 
 @Injectable()
 export class PostsService {
-  private posts: PostEntity[] = [
-    {
-      id: 1,
-      userId: 'user-1',
-      title: '안녕하세요. 처음 뵙겠습니다.',
-      content: '반가워요',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: 2,
-      userId: 'user-1',
-      title: '점메추 부탁',
-      content: '점심 추천 받아용',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: 3,
-      userId: 'user-2',
-      title: '국밥 ㄱ',
-      content: 'ㅈㄱㄴ',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-  ];
+  // 메모리 저장소 제거
 
-  private nextPostId = 4;
+  constructor(private readonly postsRepository: PostsRepository) {}
 
+  // 생성
   async create(createPostDto: CreatePostDto): Promise<PostEntity> {
-    const newPost: PostEntity = { // 새 게시물 작성
-      id: this.nextPostId++,
-      ...createPostDto,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as PostEntity;
-
-    this.posts.push(newPost);
-
-    return newPost;
+    return this.postsRepository.create({
+      userId: createPostDto.userId,
+      title: createPostDto.title,
+      content: createPostDto.content,
+    });
   }
 
+  // 목록 조회
   async findAll(userId?: string): Promise<PostEntity[]> {
-    if(userId){
-      return this.posts.filter((post) => post.userId === userId); //userId에 해당하는 게시글 필터링
-    }
-    else{
-      return this.posts; // 없으면 전체 목록 반환
-    }
+    return this.postsRepository.findAll(userId);
   }
 
-  async findOneById(id:number): Promise<PostEntity> {
-    const post = this.posts.find((post) => post.id === id);
-
-    if(!post){
-      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`);
+  // 개별 조회
+  async findOneById(id: number): Promise<PostEntity> {
+    const post = await this.postsRepository.findById(id);
+    if (!post) {
+      throw new NotFoundException(`게시글 ID ${id}를 찾을 수 없습니다.`);
     }
-
     return post;
   }
-  
+
+  // 수정
   async update(id: number, updatePostDto: UpdatePostDto): Promise<PostEntity> {
-    const postIndex = this.posts.findIndex((post) => post.id === id);
-
-    if (postIndex === -1) {
-      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`);
-    }
-
-    this.posts[postIndex] = {
-      ...this.posts[postIndex],
-      ...updatePostDto,
-      updatedAt: new Date()
-    };
-
-    return this.posts[postIndex];
+    return this.postsRepository.update(id, {
+      title: updatePostDto.title,
+      content: updatePostDto.content,
+    });
   }
 
+  // 삭제
   async remove(id: number): Promise<void> {
-    const postIndex = this.posts.findIndex((p) => p.id === id);
-    if (postIndex === -1){
-      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`)
-    }
-    this.posts.splice(postIndex, 1);
+    await this.postsRepository.delete(id);
   }
 }
