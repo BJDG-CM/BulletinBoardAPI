@@ -56,7 +56,7 @@ export class PostsService {
     }
   }
 
-  findOneById(id?:number): PostEntity {
+  findOneById(id:number): PostEntity {
     const post = this.posts.find((post) => post.id === id);
 
     if(!post){
