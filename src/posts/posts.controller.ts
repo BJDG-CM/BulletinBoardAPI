@@ -7,7 +7,6 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { PostEntity } from './entities/post.entity';
 import { FindPostsQueryDto } from './dto/find-posts-query.dto';
-import { FindPostParamDto } from './dto/find-post-param.dto';
 
 @ApiTags('Posts') // Swagger에서 API들을 "Posts"라는 태그로 묶어줌
 @Controller('posts')

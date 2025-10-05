@@ -34,7 +34,7 @@ export class PostsService {
 
   private nextPostId = 4;
 
-  create(createPostDto: CreatePostDto): PostEntity {
+  async create(createPostDto: CreatePostDto): Promise<PostEntity> {
     const newPost: PostEntity = { // 새 게시물 작성
       id: this.nextPostId++,
       ...createPostDto,
@@ -47,7 +47,7 @@ export class PostsService {
     return newPost;
   }
 
-  findAll(userId?: string): PostEntity[] {
+  async findAll(userId?: string): Promise<PostEntity[]> {
     if(userId){
       return this.posts.filter((post) => post.userId === userId); //userId에 해당하는 게시글 필터링
     }
@@ -56,21 +56,21 @@ export class PostsService {
     }
   }
 
-  findOneById(id:number): PostEntity {
+  async findOneById(id:number): Promise<PostEntity> {
     const post = this.posts.find((post) => post.id === id);
 
     if(!post){
-      throw new NotFoundException('Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.');
+      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`);
     }
 
     return post;
   }
   
-  update(id: number, updatePostDto: UpdatePostDto): PostEntity {
+  async update(id: number, updatePostDto: UpdatePostDto): Promise<PostEntity> {
     const postIndex = this.posts.findIndex((post) => post.id === id);
 
     if (postIndex === -1) {
-      throw new NotFoundException('Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.');
+      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`);
     }
 
     this.posts[postIndex] = {
@@ -82,10 +82,10 @@ export class PostsService {
     return this.posts[postIndex];
   }
 
-  remove(id: number): void {
+  async remove(id: number): Promise<void> {
     const postIndex = this.posts.findIndex((p) => p.id === id);
     if (postIndex === -1){
-      throw new NotFoundException('Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.')
+      throw new NotFoundException(`Error!: 게시글 ID가 "${id}"인 게시글을 찾을 수 없습니다.`)
     }
     this.posts.splice(postIndex, 1);
   }
