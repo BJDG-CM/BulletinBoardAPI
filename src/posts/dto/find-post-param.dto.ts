@@ -1,9 +1,9 @@
 import { IsNotEmpty, IsNumberString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class FindPostParamDto {
-  @IsNotEmpty({ message: 'Error!: 게시글 ID를 입력해주세요.' })
-  @IsNumberString({}, { message: 'Error!: 게시글 ID는 숫자여야 합니다.' })
-  @Transform(({ value }) => parseInt(value))
-  id: number;
+  @ApiProperty({ description: '조회/수정/삭제할 게시글의 ID', example: '1' })
+  @IsNumberString({}, { message: '게시글 ID는 숫자 형식이어야 합니다.' })
+  @IsNotEmpty({ message: '게시글 ID를 입력해주세요.' })
+  id: string;
 }
