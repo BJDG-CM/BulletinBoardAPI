@@ -1,48 +1,65 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { PostEntity } from './entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PostsRepository } from './repositories/posts.repository';
 
 @Injectable()
 export class PostsService {
-  // 메모리 저장소 제거
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private readonly postsRepository: PostsRepository) {}
+  private toEntity(model: any): PostEntity {
+    return { ...model } as PostEntity;
+  }
 
-  // 생성
   async create(createPostDto: CreatePostDto): Promise<PostEntity> {
-    return this.postsRepository.create({
-      userId: createPostDto.userId,
-      title: createPostDto.title,
-      content: createPostDto.content,
+    const created = await this.prisma.post.create({
+      data: {
+        userId: createPostDto.userId,
+        title: createPostDto.title,
+        content: createPostDto.content,
+      },
     });
+    return this.toEntity(created);
   }
 
-  // 목록 조회
   async findAll(userId?: string): Promise<PostEntity[]> {
-    return this.postsRepository.findAll(userId);
+    const rows = await this.prisma.post.findMany({
+      where: userId ? { userId } : {},
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map(r => this.toEntity(r));
   }
 
-  // 개별 조회
   async findOneById(id: number): Promise<PostEntity> {
-    const post = await this.postsRepository.findById(id);
-    if (!post) {
+    try {
+      const post = await this.prisma.post.findUniqueOrThrow({ where: { id } });
+      return this.toEntity(post);
+    } catch {
       throw new NotFoundException(`게시글 ID ${id}를 찾을 수 없습니다.`);
     }
-    return post;
   }
 
-  // 수정
   async update(id: number, updatePostDto: UpdatePostDto): Promise<PostEntity> {
-    return this.postsRepository.update(id, {
-      title: updatePostDto.title,
-      content: updatePostDto.content,
-    });
+    try {
+      const updated = await this.prisma.post.update({
+        where: { id },
+        data: {
+          title: updatePostDto.title,
+          content: updatePostDto.content,
+        },
+      });
+      return this.toEntity(updated);
+    } catch {
+      throw new NotFoundException(`게시글 ID ${id}를 찾을 수 없습니다.`);
+    }
   }
 
-  // 삭제
   async remove(id: number): Promise<void> {
-    await this.postsRepository.delete(id);
+    try {
+      await this.prisma.post.delete({ where: { id } });
+    } catch {
+      throw new NotFoundException(`게시글 ID ${id}를 찾을 수 없습니다.`);
+    }
   }
 }
