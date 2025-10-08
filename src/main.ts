@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,19 @@ async function bootstrap() {
     }),
   );
   
-  await app.listen(process.env.PORT ?? 3001);
+  const config = new DocumentBuilder()
+    .setTitle('게시판 API 명세서')
+    .setDescription('NestJS로 만든 게시판 API')
+    .setVersion('1.0')
+    .addTag('Posts', '게시글 관련 API')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document); // 'api-docs' 경로에서 Swagger UI 제공
+
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Swagger UI is available at: http://localhost:${port}/api-docs`);
 }
 bootstrap();
