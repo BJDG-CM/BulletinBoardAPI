@@ -55,4 +55,9 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+<<<<<<< HEAD
 /generated/prisma
+=======
+# Database
+pgdata/
+>>>>>>> 1fffab0 (feat: First commit)
