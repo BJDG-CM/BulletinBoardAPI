@@ -1,15 +1,18 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  private users: UserEntity[] = [];
-  private nextUserId = 1;
+  constructor(private prisma: PrismaService) {}
 
   async create(username: string, password: string): Promise<UserEntity> {
     // 중복 체크
-    const existingUser = this.users.find(u => u.username === username);
+    const existingUser = await this.prisma.user.findUnique({
+      where: { username },
+    });
+    
     if (existingUser) {
       throw new ConflictException('Error!: 이미 존재하는 사용자 이름입니다.');
     }
@@ -20,23 +23,24 @@ export class UsersService {
     // 비밀번호 암호화 (bcrypt - salt rounds 10)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser: UserEntity = {
-      id: `user-${this.nextUserId++}`,
-      username,
-      password: hashedPassword,
-      createdAt: new Date(),
-    };
-
-    this.users.push(newUser);
-    return newUser;
+    return this.prisma.user.create({
+      data: {
+        username,
+        password: hashedPassword,
+      },
+    });
   }
 
-  async findByUsername(username: string): Promise<UserEntity | undefined> {
-    return this.users.find(u => u.username === username);
+  async findByUsername(username: string): Promise<UserEntity | null> {
+    return this.prisma.user.findUnique({
+      where: { username },
+    });
   }
 
-  async findById(id: string): Promise<UserEntity | undefined> {
-    return this.users.find(u => u.id === id);
+  async findById(id: string): Promise<UserEntity | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
   }
 
   async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {

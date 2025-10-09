@@ -1,46 +1,21 @@
-import { Body, Controller, Post, Get, Param, Query, Patch, Delete, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';  
+import { Test, TestingModule } from '@nestjs/testing';
+import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { FindPostsQueryDto } from './dto/find-posts-query.dto';
-import { FindPostParamDto } from './dto/find-post-param.dto';
-import { PostEntity } from './entities/post.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PrismaService } from '../prisma/prisma.service';
 
-@Controller('posts')
-export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+describe('PostsController', () => {
+  let controller: PostsController;
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  async create(@Body() createPostDto: CreatePostDto, @Request() req): Promise<PostEntity> {
-    return this.postsService.create(createPostDto, req.user.userId);
-  }
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PostsController],
+      providers: [PostsService, PrismaService],
+    }).compile();
 
-  @Get()
-  async findAll(@Query() query: FindPostsQueryDto): Promise<PostEntity[]> {
-    return this.postsService.findAll(query.userId);
-  }
+    controller = module.get<PostsController>(PostsController);
+  });
 
-  @Get(':id')
-  async findOne(@Param() params: FindPostParamDto): Promise<PostEntity> {
-    return this.postsService.findOneById(params.id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  async update(
-    @Param() params: FindPostParamDto,
-    @Body() updatePostDto: UpdatePostDto,
-    @Request() req,
-  ): Promise<PostEntity> {
-    return this.postsService.update(params.id, updatePostDto, req.user.userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param() params: FindPostParamDto, @Request() req): Promise<void> {
-    return this.postsService.remove(params.id, req.user.userId);
-  }
-}
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
