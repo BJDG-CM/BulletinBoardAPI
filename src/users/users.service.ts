@@ -1,3 +1,7 @@
+// 참고: 이 서비스는 현재 사용되지 않습니다.
+// AuthRepository가 동일한 기능을 제공하고 있습니다.
+// 필요시 AuthRepository로 통합하거나 이 파일을 삭제하는 것을 권장합니다.
+
 import { Injectable, ConflictException } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
 import { PrismaService } from '../prisma/prisma.service';

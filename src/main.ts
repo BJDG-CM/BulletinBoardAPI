@@ -6,23 +6,31 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
+  // CORS 설정 (필요시)
+  app.enableCors();
+  
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, //DTO에 정의되지 않은 속성 제거
-      forbidNonWhitelisted: true, //DTO에 없는 속성 전달 시 에러
-      transform: true, // 요청 데이터를 DTO 인스턴스로 자동 변환
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
   
   const config = new DocumentBuilder()
     .setTitle('게시판 API 명세서')
-    .setDescription('NestJS로 만든 게시판 API')
-    .setVersion('1.0')
+    .setDescription('NestJS로 만든 게시판 API (Access Token + Refresh Token 적용)')
+    .setVersion('2.0')
+    .addTag('auth', '인증 관련 API')
     .addTag('Posts', '게시글 관련 API')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document); // 'api-docs' 경로에서 Swagger UI 제공
+  SwaggerModule.setup('api-docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
