@@ -86,6 +86,50 @@ export class AuthService {
     await this.authRepository.deleteRefreshToken(refreshToken);
   }
 
+  async googleLogin(user: any): Promise<LoginResponseDto> {
+    if (!user || !user.email) {
+      throw new UnauthorizedException('Error!: Google 사용자 정보를 가져올 수 없습니다.');
+    }
+
+    // Google ID 생성 (email을 기반으로)
+    const googleId = `google_${user.email}`;
+
+    // DB에서 Google ID로 사용자 조회
+    let existingUser = await this.authRepository.findUserByGoogleId(googleId);
+
+    // 사용자가 없으면 새로 생성
+    if (!existingUser) {
+      existingUser = await this.authRepository.createGoogleUser({
+        googleId,
+        email: user.email,
+        username: user.name || user.email.split('@')[0],
+        profileImage: user.picture,
+      });
+    } else {
+      // 기존 사용자 정보 업데이트
+      existingUser = await this.authRepository.updateUserProfile(existingUser.id, {
+        profileImage: user.picture,
+      });
+    }
+
+    // 기존 Refresh Token 삭제
+    await this.authRepository.deleteAllUserRefreshTokens(existingUser.id);
+
+    // JWT 토큰 발급
+    const accessToken = this.generateAccessToken(existingUser.id, existingUser.username);
+    const refreshToken = await this.generateRefreshToken(existingUser.id);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: existingUser.id,
+        username: existingUser.username,
+        createdAt: existingUser.createdAt,
+      },
+    };
+  }
+
   private generateAccessToken(userId: string, username: string): string {
     const payload = { sub: userId, username };
     return this.jwtService.sign(payload, {

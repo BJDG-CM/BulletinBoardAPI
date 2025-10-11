@@ -72,6 +72,38 @@ export class AuthRepository {
     await this.prisma.refreshToken.deleteMany({ where: { userId } });
   }
 
+  async findUserByGoogleId(googleId: string) {
+    return this.prisma.user.findUnique({ where: { googleId } });
+  }
+
+  async findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async createGoogleUser(data: {
+    googleId: string;
+    email: string;
+    username: string;
+    profileImage?: string;
+  }) {
+    return this.prisma.user.create({
+      data: {
+        googleId: data.googleId,
+        email: data.email,
+        username: data.username,
+        profileImage: data.profileImage,
+        password: null, // Google 로그인 사용자는 비밀번호가 없음
+      },
+    });
+  }
+
+  async updateUserProfile(userId: string, data: { profileImage?: string }) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+  }
+
   private validatePasswordStrength(password: string): void {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request, Get, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -7,6 +7,7 @@ import { ApiResponseDto } from '../common/dto/api-response.dto';
 import { LoginResponseDto, UserResponseDto, RefreshTokenResponseDto } from './dto/auth-response.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -52,5 +53,17 @@ export class AuthController {
   async logout(@Body() refreshTokenDto: RefreshTokenDto): Promise<ApiResponseDto<{ message: string }>> {
     await this.authService.logout(refreshTokenDto.refreshToken);
     return ApiResponseDto.success({ message: '로그아웃 되었습니다.' });
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req) {}
+
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  googleAuthRedirect(@Req() req) {
+
+    return this.authService.googleLogin(req.user);
   }
 }

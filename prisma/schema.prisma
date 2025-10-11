@@ -10,7 +10,10 @@ datasource db {
 model User {
   id            String         @id @default(uuid())
   username      String         @unique
-  password      String
+  password      String?       
+  googleId      String?        @unique
+  email         String?        @unique
+  profileImage  String?
   posts         Post[]
   refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
