@@ -3,13 +3,21 @@ import { PostsRepository } from './repositories/posts.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostResponseDto } from './dto/post-response.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private postsRepository: PostsRepository) {}
+  constructor(
+    private postsRepository: PostsRepository,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async create(createPostDto: CreatePostDto, userId: string): Promise<PostResponseDto> {
-    return this.postsRepository.create(createPostDto, userId);
+    const post = await this.postsRepository.create(createPostDto, userId);
+
+    this.notificationsService.notifyCategorySubscribers(createPostDto.categoryId);
+
+    return post;
   }
 
   async findAll(userId?: string, categoryId?: number): Promise<PostResponseDto[]> {
