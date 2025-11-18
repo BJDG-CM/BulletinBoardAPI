@@ -12,8 +12,8 @@ export class PostsService {
     return this.postsRepository.create(createPostDto, userId);
   }
 
-  async findAll(userId?: string): Promise<PostResponseDto[]> {
-    return this.postsRepository.findAll(userId);
+  async findAll(userId?: string, categoryId?: number): Promise<PostResponseDto[]> {
+    return this.postsRepository.findAll(userId, categoryId);
   }
 
   async findOneById(id: number): Promise<PostResponseDto> {

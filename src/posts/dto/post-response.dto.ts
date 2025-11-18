@@ -13,6 +13,12 @@ export class PostResponseDto {
   @ApiProperty({ description: '게시글 내용', example: '반가워요!' })
   content: string;
 
+  @ApiProperty({ description: '카테고리 ID', example: 1 })
+  categoryId: number;
+
+  @ApiProperty({ description: '카테고리 이름', example: 'announcement' })
+  categoryName: string;
+
   @ApiProperty({ description: '생성일', example: '2024-01-01T00:00:00.000Z' })
   createdAt: Date;
 

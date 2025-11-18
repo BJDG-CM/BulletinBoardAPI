@@ -1,120 +1,34 @@
-import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import { IdpUserInfo } from '../idp.service';
 
 @Injectable()
 export class AuthRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(username: string, password: string) {
-    // 중복 체크
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Error!: 이미 존재하는 사용자 이름입니다.');
-    }
-
-    // 비밀번호 강도 검증
-    this.validatePasswordStrength(password);
-
-    // 비밀번호 암호화
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    return this.prisma.user.create({
-      data: { username, password: hashedPassword },
-    });
-  }
-
-  async findUserByUsername(username: string) {
-    return this.prisma.user.findUnique({ where: { username } });
-  }
-
-  async findUserById(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
-  }
-
-  async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(plainPassword, hashedPassword);
-  }
-
-  async saveRefreshToken(userId: string, token: string, expiresAt: Date) {
+  async upsertIdpUser(userInfo: IdpUserInfo) {
     try {
-      return await this.prisma.refreshToken.create({
-        data: { userId, token, expiresAt },
+      return await this.prisma.user.upsert({
+        where: { sub: userInfo.sub },
+        update: {
+          name: userInfo.name,
+          email: userInfo.email,
+        },
+        create: {
+          sub: userInfo.sub,
+          name: userInfo.name,
+          email: userInfo.email,
+        },
       });
-    } catch (error) {
-      throw new InternalServerErrorException('Error!: Refresh Token 저장 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('이미 등록된 사용자 이메일입니다.');
+      }
+      throw error;
     }
   }
 
-  async findRefreshToken(token: string) {
-    try {
-      return await this.prisma.refreshToken.findUnique({
-        where: { token },
-        include: { user: true },
-      });
-    } catch (error) {
-      return null;
-    }
-  }
-
-  async deleteRefreshToken(token: string) {
-    try {
-      await this.prisma.refreshToken.delete({ where: { token } });
-    } catch (error) {
-      // Token이 이미 삭제되었거나 존재하지 않는 경우 무시
-    }
-  }
-
-  async deleteAllUserRefreshTokens(userId: string) {
-    await this.prisma.refreshToken.deleteMany({ where: { userId } });
-  }
-
-  async findUserByGoogleId(googleId: string) {
-    return this.prisma.user.findUnique({ where: { googleId } });
-  }
-
-  async findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
-  }
-
-  async createGoogleUser(data: {
-    googleId: string;
-    email: string;
-    username: string;
-    profileImage?: string;
-  }) {
-    return this.prisma.user.create({
-      data: {
-        googleId: data.googleId,
-        email: data.email,
-        username: data.username,
-        profileImage: data.profileImage,
-        password: null, // Google 로그인 사용자는 비밀번호가 없음
-      },
-    });
-  }
-
-  async updateUserProfile(userId: string, data: { profileImage?: string }) {
-    return this.prisma.user.update({
-      where: { id: userId },
-      data,
-    });
-  }
-
-  private validatePasswordStrength(password: string): void {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    const isLengthValid = password.length >= 8;
-
-    if (!isLengthValid || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-      throw new ConflictException(
-        'Error!: 비밀번호는 최소 8자 이상이며, 영문 대문자, 소문자, 숫자, 특수문자를 모두 포함해야 합니다.'
-      );
-    }
+  async findBySub(sub: string) {
+    return this.prisma.user.findUnique({ where: { sub } });
   }
 }

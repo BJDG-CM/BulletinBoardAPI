@@ -1,11 +1,7 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePostDto {
-  @ApiProperty({ description: '작성자 ID', example: 'user-1' })
-  @IsString()
-  @IsNotEmpty({ message: '작성자 ID를 입력해주세요.' })
-  userId: string;
 
   @ApiProperty({ description: '게시글 제목', example: '새로운 게시글 제목' })
   @IsString()
@@ -16,4 +12,9 @@ export class CreatePostDto {
   @IsString()
   @IsNotEmpty({ message: '게시글 내용을 입력해주세요.' })
   content: string;
+  
+  @ApiProperty({ description: '카테고리 ID', example: 1 })
+  @IsInt()
+  @Min(1)
+  categoryId: number;
 }

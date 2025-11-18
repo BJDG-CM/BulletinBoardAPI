@@ -29,7 +29,7 @@ export class PostsController {
   @ApiQuery({ type: FindPostsQueryDto })
   @ApiOkResponse({ description: '목록 조회 성공!', type: [PostResponseDto] })
   async findAll(@Query() query: FindPostsQueryDto): Promise<ApiResponseDto<PostResponseDto[]>> {
-    const posts = await this.postsService.findAll(query.userId);
+    const posts = await this.postsService.findAll(query.userId, query.categoryId);
     return ApiResponseDto.success(posts);
   }
 
