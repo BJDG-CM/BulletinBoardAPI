@@ -9,27 +9,54 @@ datasource db {
 
 model User {
   id            String         @id @default(uuid())
-  username      String         @unique
-  password      String?       
-  googleId      String?        @unique
+  sub           String         @unique
+  name          String
   email         String?        @unique
+  username      String?        @unique
+  password      String?
+  googleId      String?        @unique
   profileImage  String?
   posts         Post[]
   refreshTokens RefreshToken[]
+  subscriptions UserCategory[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  userId    String
-  title     String
-  content   String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int       @id @default(autoincrement())
+  userId     String
+  categoryId Int
+  title      String
+  content    String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([userId])
+  @@index([categoryId])
+}
+
+model Category {
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  posts          Post[]
+  subscriptions  UserCategory[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model UserCategory {
+  userId     String
+  categoryId Int
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, categoryId])
+  @@index([categoryId])
 }
 
 model RefreshToken {

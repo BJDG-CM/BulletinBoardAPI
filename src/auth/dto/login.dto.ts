@@ -1,17 +1,14 @@
-import { IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ description: '사용자 이름', example: 'jane_doe' })
+  @ApiProperty({ description: '인가 코드', example: 'auth-code-from-idp' })
   @IsString()
-  @IsNotEmpty({ message: 'Error!: 사용자 이름을 입력해주세요.' })
-  username: string;
+  @IsNotEmpty({ message: '인가 코드를 입력해주세요.' })
+  code: string;
 
-  @ApiProperty({ 
-    description: '비밀번호 (영문 대소문자, 숫자, 특수문자 포함 8자 이상)', 
-    example: 'Password123!' 
-  })
+  @ApiProperty({ description: '리디렉션 URI', required: false })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Error!: 비밀번호를 입력해주세요.' })
-  password: string;
+  redirectUri?: string;
 }

@@ -22,10 +22,11 @@ async function bootstrap() {
   
   const config = new DocumentBuilder()
     .setTitle('게시판 API 명세서')
-    .setDescription('NestJS로 만든 게시판 API (Access Token + Refresh Token 적용)')
+    .setDescription('NestJS로 만든 게시판 API (IDP 연동 및 카테고리 관리)')
     .setVersion('2.0')
     .addTag('auth', '인증 관련 API')
     .addTag('Posts', '게시글 관련 API')
+    .addTag('Categories', '카테고리 관련 API')
     .addBearerAuth()
     .build();
 

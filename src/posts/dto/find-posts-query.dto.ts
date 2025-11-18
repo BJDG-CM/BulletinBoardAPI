@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FindPostsQueryDto {
@@ -10,4 +10,10 @@ export class FindPostsQueryDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @ApiProperty({ description: '카테고리 ID', example: 1, required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  categoryId?: number;
 }
